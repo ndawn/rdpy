@@ -50,7 +50,7 @@ x86 | x86_64
 
 ```
 $ git clone https://github.com/citronneur/rdpy.git rdpy
-$ pip install twisted pyopenssl qt4reactor service_identity rsa pyasn1
+$ pip install twisted pyopenssl qt5reactor service_identity rsa pyasn1
 $ python rdpy/setup.py install
 ```
 
@@ -136,7 +136,7 @@ $ rdpy-rssplayer.py rss_file_path
 
 ## RDPY Qt Widget
 
-RDPY can also be used as Qt widget through rdpy.ui.qt4.QRemoteDesktop class. It can be embedded in your own Qt application. qt4reactor must be used in your app for Twisted and Qt to work together. For more details, see sources of rdpy-rdpclient.
+RDPY can also be used as Qt widget through rdpy.ui.qt4.QRemoteDesktop class. It can be embedded in your own Qt application. qt5reactor must be used in your app for Twisted and Qt to work together. For more details, see sources of rdpy-rdpclient.
 
 ## RDPY library
 

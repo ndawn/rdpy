@@ -57,4 +57,4 @@ def scancodeToChar(code):
     """
     if not _SCANCODE_QWERTY_.has_key(code):
         return "<unknown scancode %x>"%code
-    return _SCANCODE_QWERTY_[code];
+    return _SCANCODE_QWERTY_[code]

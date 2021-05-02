@@ -22,7 +22,7 @@ Basic Encoding Rules use in RDP.
 ASN.1 standard
 """
 
-from rdpy.core.type import UInt8, UInt16Be, UInt32Be, String
+from rdpy.core.type import UInt8, UInt16Be, UInt32Be, Bytes
 from rdpy.core.error import InvalidExpectedDataException, InvalidSize
 
 class BerPc(object):
@@ -235,7 +235,7 @@ def writeOctetstring(value):
     @param value: string
     @return: BER octet string block 
     """
-    return (writeUniversalTag(Tag.BER_TAG_OCTET_STRING, False), writeLength(len(value)), String(value))
+    return (writeUniversalTag(Tag.BER_TAG_OCTET_STRING, False), writeLength(len(value)), Bytes(value))
 
 def readEnumerated(s):
     """

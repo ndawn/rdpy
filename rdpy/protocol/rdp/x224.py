@@ -26,7 +26,7 @@ RDP basic security is supported only on client side
 from rdpy.core import log
 
 from rdpy.core.layer import LayerAutomata, IStreamSender
-from rdpy.core.type import UInt8, UInt16Le, UInt16Be, UInt32Le, CompositeType, sizeof, String
+from rdpy.core.type import UInt8, UInt16Le, UInt16Be, UInt32Le, CompositeType, sizeof, Bytes
 from rdpy.core.error import InvalidExpectedDataException, RDPSecurityNegoFail
 
 class MessageType(object):
@@ -79,7 +79,7 @@ class ClientConnectionRequestPDU(CompositeType):
         self.len = UInt8(lambda:sizeof(self) - 1)
         self.code = UInt8(MessageType.X224_TPDU_CONNECTION_REQUEST, constant = True)
         self.padding = (UInt16Be(), UInt16Be(), UInt8())
-        self.cookie = String(until = "\x0d\x0a", conditional = lambda:(self.len._is_readed and self.len.value > 14))
+        self.cookie = Bytes(until = b"\x0d\x0a", conditional = lambda:(self.len._is_readed and self.len.value > 14))
         #read if there is enough data
         self.protocolNeg = Negotiation(optional = True)
 

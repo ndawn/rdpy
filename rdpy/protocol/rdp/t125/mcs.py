@@ -25,12 +25,12 @@ The main channel is the graphical channel.
 It exist channel for file system order, audio channel, clipboard etc...
 """
 from rdpy.core.layer import LayerAutomata, IStreamSender, Layer
-from rdpy.core.type import sizeof, Stream, UInt8, UInt16Le, String
+from rdpy.core.type import sizeof, Stream, UInt8, UInt16Le, Bytes
 from rdpy.core.error import InvalidExpectedDataException, InvalidValue, InvalidSize, CallPureVirtualFuntion
-from ber import writeLength
+from rdpy.protocol.rdp.t125.ber import writeLength
 import rdpy.core.log as log
 
-import ber, gcc, per
+from rdpy.protocol.rdp.t125 import ber, gcc, per
 import rdpy.security.rsa_wrapper as rsa
 
 class Message(object):
@@ -182,7 +182,7 @@ class MCSLayer(LayerAutomata):
         @summary: Send disconnect provider ultimatum
         """
         self._transport.send((UInt8(self.writeMCSPDUHeader(DomainMCSPDU.DISCONNECT_PROVIDER_ULTIMATUM, 1)),
-                              per.writeEnumerates(0x80), String("\x00" * 6)))
+                              per.writeEnumerates(0x80), Bytes("\x00" * 6)))
         self._transport.close()
         
     def allChannelConnected(self):

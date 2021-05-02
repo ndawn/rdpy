@@ -21,7 +21,7 @@
 Fake widget
 """
 from rdpy.core.error import CallPureVirtualFuntion
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 
 class KeyCode(object):
@@ -212,7 +212,7 @@ class Label(IView):
         @param force: force update
         """
         if not force:
-            return;
+            return
         drawArea = QtGui.QImage(self._width, self._height, render.getImageFormat())
         drawArea.fill(self._backgroundColor)
         with QtGui.QPainter(drawArea) as qp:

@@ -22,9 +22,9 @@ Implement GCC structure use in RDP protocol
 http://msdn.microsoft.com/en-us/library/cc240508.aspx
 """
 
-import md5
-from rdpy.core.type import UInt8, UInt16Le, UInt32Le, CompositeType, CallableValue, String, Stream, sizeof, FactoryType, ArrayType
-import per, mcs
+import hashlib
+from rdpy.core.type import UInt8, UInt16Le, UInt32Le, CompositeType, CallableValue, Bytes, Stream, sizeof, FactoryType, ArrayType
+from rdpy.protocol.rdp.t125 import per, mcs
 from rdpy.core.error import InvalidExpectedDataException
 from rdpy.core import log
 from rdpy.security import x509
@@ -32,8 +32,9 @@ import rdpy.security.rsa_wrapper as rsa
 
 t124_02_98_oid = ( 0, 0, 20, 124, 0, 1 )
 
-h221_cs_key = "Duca";
-h221_sc_key = "McDn";
+h221_cs_key = "Duca"
+h221_sc_key = "McDn"
+
 
 class MessageType(object):
     """
@@ -227,7 +228,7 @@ class DataBlock(CompositeType):
                     return c(readLen = self.length - 4)
             log.debug("unknown GCC block type : %s"%hex(self.type.value))
             #read entire packet
-            return String(readLen = self.length - 4)
+            return Bytes(readLen = self.length - 4)
         
         if dataBlock is None:
             dataBlock = FactoryType(DataBlockFactory)
@@ -252,18 +253,18 @@ class ClientCoreData(CompositeType):
         self.sasSequence = UInt16Le(Sequence.RNS_UD_SAS_DEL)
         self.kbdLayout = UInt32Le(KeyboardLayout.US)
         self.clientBuild = UInt32Le(3790)
-        self.clientName = String("rdpy" + "\x00"*11, readLen = CallableValue(32), unicode = True)
+        self.clientName = Bytes("rdpy" + "\x00"*11, readLen = CallableValue(32), unicode = True)
         self.keyboardType = UInt32Le(KeyboardType.IBM_101_102_KEYS)
         self.keyboardSubType = UInt32Le(0)
         self.keyboardFnKeys = UInt32Le(12)
-        self.imeFileName = String("\x00"*64, readLen = CallableValue(64), optional = True)
+        self.imeFileName = Bytes("\x00"*64, readLen = CallableValue(64), optional = True)
         self.postBeta2ColorDepth = UInt16Le(ColorDepth.RNS_UD_COLOR_8BPP, optional = True)
         self.clientProductId = UInt16Le(1, optional = True)
         self.serialNumber = UInt32Le(0, optional = True)
         self.highColorDepth = UInt16Le(HighColor.HIGH_COLOR_24BPP, optional = True)
         self.supportedColorDepths = UInt16Le(Support.RNS_UD_15BPP_SUPPORT | Support.RNS_UD_16BPP_SUPPORT | Support.RNS_UD_24BPP_SUPPORT | Support.RNS_UD_32BPP_SUPPORT, optional = True)
         self.earlyCapabilityFlags = UInt16Le(CapabilityFlags.RNS_UD_CS_SUPPORT_ERRINFO_PDU, optional = True)
-        self.clientDigProductId = String("\x00"*64, readLen = CallableValue(64), optional = True)
+        self.clientDigProductId = Bytes("\x00"*64, readLen = CallableValue(64), optional = True)
         self.connectionType = UInt8(optional = True)
         self.pad1octet = UInt8(optional = True)
         self.serverSelectedProtocol = UInt32Le(optional = True)
@@ -306,7 +307,7 @@ class ServerSecurityData(CompositeType):
         self.encryptionLevel = UInt32Le() 
         self.serverRandomLen = UInt32Le(0x00000020, constant = True, conditional = lambda:not(self.encryptionMethod.value == 0 and self.encryptionLevel == 0))
         self.serverCertLen = UInt32Le(lambda:sizeof(self.serverCertificate), conditional = lambda:not(self.encryptionMethod.value == 0 and self.encryptionLevel == 0))
-        self.serverRandom = String(readLen = self.serverRandomLen, conditional = lambda:not(self.encryptionMethod.value == 0 and self.encryptionLevel == 0))
+        self.serverRandom = Bytes(readLen = self.serverRandomLen, conditional = lambda:not(self.encryptionMethod.value == 0 and self.encryptionLevel == 0))
         self.serverCertificate = ServerCertificate(readLen = self.serverCertLen, conditional = lambda:not(self.encryptionMethod.value == 0 and self.encryptionLevel == 0))
 
 class ServerCertificate(CompositeType):
@@ -355,8 +356,8 @@ class ProprietaryServerCertificate(CompositeType):
         self.PublicKeyBlob = RSAPublicKey(readLen = self.wPublicKeyBlobLen)
         self.wSignatureBlobType = UInt16Le(0x0008, constant = True)
         self.wSignatureBlobLen = UInt16Le(lambda:(sizeof(self.SignatureBlob) + sizeof(self.padding)))
-        self.SignatureBlob = String(readLen = CallableValue(lambda:(self.wSignatureBlobLen.value - sizeof(self.padding))))
-        self.padding = String(b"\x00" * 8, readLen = CallableValue(8))
+        self.SignatureBlob = Bytes(readLen = CallableValue(lambda:(self.wSignatureBlobLen.value - sizeof(self.padding))))
+        self.padding = Bytes(b"\x00" * 8, readLen = CallableValue(8))
         
     def getPublicKey(self):
         """
@@ -378,10 +379,10 @@ class ProprietaryServerCertificate(CompositeType):
         s.writeType(self.wPublicKeyBlobLen)
         s.writeType(self.PublicKeyBlob)
     
-        md5Digest = md5.new()
+        md5Digest = hashlib.md5()
         md5Digest.update(s.getvalue())
         
-        return md5Digest.digest() + "\x00" + "\xff" * 45 + "\x01"
+        return md5Digest.digest() + b"\x00" + b"\xff" * 45 + b"\x01"
         
     def sign(self):
         """
@@ -405,7 +406,7 @@ class CertBlob(CompositeType):
     def __init__(self):
         CompositeType.__init__(self)
         self.cbCert = UInt32Le(lambda:sizeof(self.abCert))
-        self.abCert = String(readLen = self.cbCert)
+        self.abCert = Bytes(readLen = self.cbCert)
 
 class X509CertificateChain(CompositeType):
     """
@@ -418,7 +419,7 @@ class X509CertificateChain(CompositeType):
         CompositeType.__init__(self)
         self.NumCertBlobs = UInt32Le()
         self.CertBlobArray = ArrayType(CertBlob, readLen = self.NumCertBlobs)
-        self.padding = String(readLen = CallableValue(lambda:(8 + 4 * self.NumCertBlobs.value)))
+        self.padding = Bytes(readLen = CallableValue(lambda:(8 + 4 * self.NumCertBlobs.value)))
         
     def getPublicKey(self):
         """
@@ -447,8 +448,8 @@ class RSAPublicKey(CompositeType):
         self.bitlen = UInt32Le(lambda:((self.keylen.value - 8) * 8))
         self.datalen = UInt32Le(lambda:((self.bitlen.value / 8) - 1))
         self.pubExp = UInt32Le()
-        self.modulus = String(readLen = CallableValue(lambda:(self.keylen.value - 8)))
-        self.padding = String("\x00" * 8, readLen = CallableValue(8))
+        self.modulus = Bytes(readLen = CallableValue(lambda:(self.keylen.value - 8)))
+        self.padding = Bytes("\x00" * 8, readLen = CallableValue(8))
 
 class ChannelDef(CompositeType):
     """
@@ -458,7 +459,7 @@ class ChannelDef(CompositeType):
     def __init__(self, name = "", options = 0):
         CompositeType.__init__(self)
         #name of channel
-        self.name = String(name[0:8] + "\x00" * (8 - len(name)), readLen = CallableValue(8))
+        self.name = Bytes(name[0:8] + "\x00" * (8 - len(name)), readLen = CallableValue(8))
         #unknown
         self.options = UInt32Le()
         

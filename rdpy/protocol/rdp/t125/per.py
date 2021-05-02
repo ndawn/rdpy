@@ -21,7 +21,7 @@
 Per encoded function
 """
 
-from rdpy.core.type import UInt8, UInt16Be, UInt32Be, String
+from rdpy.core.type import UInt8, UInt16Be, UInt32Be, Bytes
 from rdpy.core.error import InvalidValue, InvalidExpectedDataException
 
 def readLength(s):
@@ -264,7 +264,7 @@ def writePadding(length):
     @param length: length of padding
     @return: String with \x00 * length
     """
-    return String("\x00"*length)
+    return Bytes("\x00"*length)
 
 def readOctetStream(s, octetStream, minValue = 0):
     """
@@ -276,7 +276,7 @@ def readOctetStream(s, octetStream, minValue = 0):
     """
     size = readLength(s) + minValue
     if size != len(octetStream):
-        raise InvalidValue("incompatible size %d != %d"(len(octetStream), size))
+        raise InvalidValue("incompatible size %d != %d" % (len(octetStream), size))
     for i in range(0, size):
         c = UInt8()
         s.readType(c)

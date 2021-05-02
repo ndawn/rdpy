@@ -23,7 +23,7 @@ rss file player
 
 import sys, os, getopt, socket
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 from rdpy.core import log, rss
 from rdpy.ui.qt4 import QRemoteDesktop, RDPBitmapToQtImage
@@ -70,7 +70,7 @@ class RssPlayerWindow(QtGui.QWidget):
         self.setGeometry(0, 0, 800, 600)
 
 def help():
-    print "Usage: rdpy-rssplayer [-h] rss_filepath"
+    print("Usage: rdpy-rssplayer [-h] rss_filepath")
 
 def start(widget, rssFile):
     loop(widget, rssFile, rssFile.nextEvent())

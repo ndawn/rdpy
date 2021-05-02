@@ -26,7 +26,7 @@ Implement Remote FrameBuffer protocol use in VNC client and server
 """
 
 from rdpy.core.layer import RawLayer, RawLayerClientFactory
-from rdpy.core.type import UInt8, UInt16Be, UInt32Be, SInt32Be, String, CompositeType
+from rdpy.core.type import UInt8, UInt16Be, UInt32Be, SInt32Be, Bytes, CompositeType
 from rdpy.core.error import InvalidValue, CallPureVirtualFuntion
 from rdpy.security.pyDes import des
 import rdpy.core.log as log
@@ -162,7 +162,7 @@ class ClientCutText(CompositeType):
         CompositeType.__init__(self)
         self.padding = (UInt16Be(), UInt8())
         self.size = UInt32Be(len(text))
-        self.message = String(text)
+        self.message = Bytes(text)
         
 class ServerCutTextHeader(CompositeType):
     """
@@ -187,7 +187,7 @@ class RFB(RawLayer):
         #useful for RFB protocol
         self._callbackBody = None
         #protocol version negotiated
-        self._version = String(ProtocolVersion.RFB003008)
+        self._version = Bytes(ProtocolVersion.RFB003008)
         #number security launch by server
         self._securityLevel = UInt8(SecurityType.INVALID)
         #shared FrameBuffer client init message
@@ -198,7 +198,7 @@ class RFB(RawLayer):
         #client pixel format
         self._pixelFormat = PixelFormat()
         #server name
-        self._serverName = String()
+        self._serverName = Bytes()
         #nb rectangle
         self._nbRect = 0
         #current rectangle header
@@ -321,7 +321,7 @@ class RFB(RawLayer):
             newkey.append(chr(btgt))
 
         algo = des(newkey)
-        self.send(String(algo.encrypt(data.getvalue())))
+        self.send(Bytes(algo.encrypt(data.getvalue())))
         self.expect(4, self.recvSecurityResult)
       
     def recvSecurityResult(self, data):
